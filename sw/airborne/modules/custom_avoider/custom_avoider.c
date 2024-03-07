@@ -17,7 +17,8 @@
  * so you have to define which filter to use with the ORANGE_AVOIDER_VISUAL_DETECTION_ID setting.
  */
 
-#include "modules/orange_avoider/orange_avoider.h"
+#include "modules/custom_avoider/custom_avoider.h"
+#include "modules/computer_vision/cv_filter_ground3.h" // for the ground filter message
 #include "firmwares/rotorcraft/navigation.h"
 #include "generated/airframe.h"
 #include "state.h"
@@ -28,10 +29,10 @@
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
 
-#define ORANGE_AVOIDER_VERBOSE TRUE
+#define CUSTOM_AVOIDER_VERBOSE TRUE
 
-#define PRINT(string,...) fprintf(stderr, "[orange_avoider->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
-#if ORANGE_AVOIDER_VERBOSE
+#define PRINT(string,...) fprintf(stderr, "[custom_avoider->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
+#if CUSTOM_AVOIDER_VERBOSE
 #define VERBOSE_PRINT PRINT
 #else
 #define VERBOSE_PRINT(...)
@@ -42,12 +43,14 @@ static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeter
 static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
 static uint8_t increase_nav_heading(float incrementDegrees);
 static uint8_t chooseRandomIncrementAvoidance(void);
+static uint8_t chooseMaxFreeIncrementAvoidance(void);
 
 enum navigation_state_t {
   SAFE,
   OBSTACLE_FOUND,
   SEARCH_FOR_SAFE_HEADING,
-  OUT_OF_BOUNDS
+  OUT_OF_BOUNDS,
+  IDLE
 };
 
 // define settings
@@ -62,6 +65,9 @@ float maxDistance = 2.25;               // max waypoint displacement [m]
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
 
+struct ground_filter_msg_t ground_filter_msg;
+
+
 /*
  * This next section defines an ABI messaging event (http://wiki.paparazziuav.org/wiki/ABI), necessary
  * any time data calculated in another module needs to be accessed. Including the file where this external
@@ -69,35 +75,38 @@ const int16_t max_trajectory_confidence = 5; // number of consecutive negative o
  * in different threads. The ABI event is triggered every time new data is sent out, and as such the function
  * defined in this file does not need to be explicitly called, only bound in the init function
  */
-#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID
-#define ORANGE_AVOIDER_VISUAL_DETECTION_ID ABI_BROADCAST
+#ifndef GROUND_FILTER_DETECTION_ID
+#define GROUND_FILTER_DETECTION_ID ABI_BROADCAST
 #endif
-static abi_event color_detection_ev;
-static void color_detection_cb(uint8_t __attribute__((unused)) sender_id,
-                               int16_t __attribute__((unused)) pixel_x, int16_t __attribute__((unused)) pixel_y,
-                               int16_t __attribute__((unused)) pixel_width, int16_t __attribute__((unused)) pixel_height,
-                               int32_t quality, int16_t __attribute__((unused)) extra)
+static abi_event ground_filter_detection_ev;
+static void ground_filter_detection_cb(uint8_t __attribute__((unused)) sender_id,
+                                    int16_t count_left, 
+                                    int16_t count_center, 
+                                    int16_t count_right,
+                                    int16_t __attribute__((unused)) extra)
 {
-  color_count = quality;
+    ground_filter_msg.count_left = count_left; 
+    ground_filter_msg.count_center = count_center; 
+    ground_filter_msg.count_right = count_right; 
 }
 
 /*
  * Initialisation function, setting the colour filter, random seed and heading_increment
  */
-void orange_avoider_init(void)
+void custom_avoider_init(void)
 {
   // Initialise random values
   srand(time(NULL));
-  chooseRandomIncrementAvoidance();
+//   chooseRandomIncrementAvoidance();
 
-  // bind our colorfilter callbacks to receive the color filter outputs
-  AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
+  // bind our colorfilter callbacks to receive the ground filter outputs
+  AbiBindMsgGROUND_FILTER_DETECTION(GROUND_FILTER_DETECTION_ID, &ground_filter_detection_ev, ground_filter_detection_cb);
 }
 
 /*
  * Function that checks it is safe to move forwards, and then moves a waypoint forward or changes the heading
  */
-void orange_avoider_periodic(void)
+void custom_avoider_periodic(void)
 {
   // only evaluate our state machine if we are flying
   if(!autopilot_in_flight()){
@@ -107,20 +116,26 @@ void orange_avoider_periodic(void)
   // compute current color thresholds
   int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
-  VERBOSE_PRINT("Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
+  PRINT("left count: %d  center count: %d right count: %d \n", ground_filter_msg.count_left, ground_filter_msg.count_center, ground_filter_msg.count_right);
+  int32_t free_pix_max = 13813;
+    int32_t occ_pix_max = 7000;
+  int32_t center_threshold = occ_pix_max/free_pix_max;
 
   // update our safe confidence using color threshold
-  if(color_count < color_count_threshold){
-    obstacle_free_confidence++;
+  if(ground_filter_msg.count_center < occ_pix_max){ // we're gonna hit
+    // navigation_state = OBSTACLE_FOUND;
+    obstacle_free_confidence-= 2;
   } else {
-    obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
+    obstacle_free_confidence++;
+    // navigation_state = SAFE;  // be more cautious with positive obstacle detections
   }
 
-  // bound obstacle_free_confidence
+//   bound obstacle_free_confidence
   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
   float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
-
+    // navigation_state = IDLE;
+    PRINT("state %d ", navigation_state);
   switch (navigation_state){
     case SAFE:
       // Move waypoint forward
@@ -140,8 +155,8 @@ void orange_avoider_periodic(void)
       waypoint_move_here_2d(WP_TRAJECTORY);
 
       // randomly select new search direction
-      chooseRandomIncrementAvoidance();
-
+    //   chooseRandomIncrementAvoidance();
+      chooseMaxFreeIncrementAvoidance();
       navigation_state = SEARCH_FOR_SAFE_HEADING;
   
       break;
@@ -168,6 +183,8 @@ void orange_avoider_periodic(void)
         navigation_state = SEARCH_FOR_SAFE_HEADING;
       }
       break;
+    case IDLE:
+        break;
     default:
       break;
   }
@@ -236,12 +253,24 @@ uint8_t chooseRandomIncrementAvoidance(void)
 {
   // Randomly choose CW or CCW avoiding direction
   if (rand() % 2 == 0) {
-    heading_increment = 5.f;
+    heading_increment = 15.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", heading_increment);
   } else {
-    heading_increment = -5.f;
+    heading_increment = -15.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", heading_increment);
   }
   return false;
 }
 
+uint8_t chooseMaxFreeIncrementAvoidance(void)
+{
+  // Randomly choose CW or CCW avoiding direction
+  if (ground_filter_msg.count_left < ground_filter_msg.count_right) {
+    heading_increment = 15.f;
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", heading_increment);
+  } else {
+    heading_increment = -15.f;
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", heading_increment);
+  }
+  return false;
+}
