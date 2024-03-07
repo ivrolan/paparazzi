@@ -95,7 +95,13 @@ extern void test_receiver_periodic(void) {
       break;
     
     case OBSTACLE_FOUND:
-      VERBOSE_PRINT("Stuck in OBSTACLE_FOUND.");
+      VERBOSE_PRINT("Obstacle encountered");
+
+      if (ground_count_left > ground_count_right) {
+        navigation_state = TURN_LEFT;
+      } else {
+        navigation_state = TURN_RIGHT;
+      }
 
 
       break;
