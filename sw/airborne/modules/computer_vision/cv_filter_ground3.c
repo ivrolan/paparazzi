@@ -206,9 +206,9 @@ void filter_ground_periodic(void)
                                 local_msg.count_center,
                                 local_msg.count_right, 0);
 
-    PRINT("sending msg %d|%d|%d", local_msg.count_left,
-                                local_msg.count_center,
-                                local_msg.count_right);
+    // PRINT("sending msg %d|%d|%d", local_msg.count_left,
+    //                             local_msg.count_center,
+    //                             local_msg.count_right);
     local_msg.updated = false;
   }
 }

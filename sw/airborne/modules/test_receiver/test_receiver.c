@@ -34,7 +34,7 @@ static void ground_detection_cb(uint8_t __attribute__((unused)) sender_id,
   ground_count_center = received_count_center;
   ground_count_right = received_count_right;
 
-  PRINT("Ground Detection Callback");
+  //PRINT("Ground Detection Callback");
 }
 
 extern void test_receiver_init(void) {
@@ -45,8 +45,6 @@ extern void test_receiver_init(void) {
 
 }
 extern void test_receiver_periodic(void) {
-  PRINT("test receiver periodic");
 
-
-  PRINT("[countL:%d, countC:%d, countR:%d]", ground_count_left, ground_count_center, ground_count_right);
+  //PRINT("[countL:%d, countC:%d, countR:%d]", ground_count_left, ground_count_center, ground_count_right);
 }
