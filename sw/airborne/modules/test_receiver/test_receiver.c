@@ -11,11 +11,19 @@
 
 #define PRINT(string,...) fprintf(stderr, "[test_receiver->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
 
-// global vars
+enum navigation_state_t {
+  SAFE,
+  OBSTACLE_FOUND,
+  TURN_LEFT,
+  TURN_RIGHT,
+  OUT_OF_BOUNDS
+};
 
+// global vars
 int32_t ground_count_left = 0;
 int32_t ground_count_center = 0;
 int32_t ground_count_right = 0;   
+enum navigation_state_t navigation_state = OBSTACLE_FOUND;
 
 
 // for the communication with the GROUND_FILTER
@@ -45,6 +53,27 @@ extern void test_receiver_init(void) {
 
 }
 extern void test_receiver_periodic(void) {
+  // only evaluate our state machine if we are flying
+  if(!autopilot_in_flight()){
+    return;
+  }
+
+  switch (navigation_state) {
+    case SAFE:
+      break;
+    
+    case OBSTACLE_FOUND:
+      break;
+
+    case TURN_LEFT:
+      break;
+
+    case TURN_RIGHT:
+      break;
+    
+    case OUT_OF_BOUNDS:
+      break;
+  }
 
   //PRINT("[countL:%d, countC:%d, countR:%d]", ground_count_left, ground_count_center, ground_count_right);
 }
