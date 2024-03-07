@@ -94,12 +94,12 @@
       <define name="FILTER_GROUND3_CAM" value="front_camera"/>
       <define name="FILTER_GROUND3_FPS" value="0"/>
       <define name="FILTER_GROUND3_DRAW" value="1"/>
+      <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
     </module>
-    <module name="constant_turning"/>
+    <!-- <module name="constant_turning"/> -->
 
-    <module name="test_receiver">
-      <define name="TEST_RECEIVER_GROUND_FILTER_DETECTION_ID" value="GROUND_FILTER_DETECTION_ID"/>
-     
+    <module name="custom_avoider">
+      <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
     </module>
 
     <module name="video_rtp_stream">

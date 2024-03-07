@@ -9,6 +9,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+struct ground_filter_msg_t {
+  uint16_t count_left;
+  uint16_t count_center;
+  uint16_t count_right;
+  bool updated;
+};
+
+
 // Module settings
 extern uint8_t cod_lum_min;
 extern uint8_t cod_lum_max;

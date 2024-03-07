@@ -32,12 +32,6 @@ uint8_t lower_pix = 50;
 
 bool cod_draw = false;
 
-struct ground_filter_msg_t {
-  uint16_t count_left;
-  uint16_t count_center;
-  uint16_t count_right;
-  bool updated;
-};
 
 struct ground_filter_msg_t ground_filter_msg;
 
@@ -206,9 +200,9 @@ void filter_ground_periodic(void)
                                 local_msg.count_center,
                                 local_msg.count_right, 0);
 
-    PRINT("sending msg %d|%d|%d", local_msg.count_left,
-                                local_msg.count_center,
-                                local_msg.count_right);
+    // PRINT("sending msg %d|%d|%d", local_msg.count_left,
+    //                             local_msg.count_center,
+    //                             local_msg.count_right);
     local_msg.updated = false;
   }
 }
