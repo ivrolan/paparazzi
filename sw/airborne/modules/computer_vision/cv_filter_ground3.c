@@ -66,6 +66,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t cnt_right = 0;
   uint8_t *buffer = img->buf;
 
+  int floor_array[img->h][img->w];
+
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
   //PRINT("lower_pix = %d, img->h /3: %d", lower_pix, img->h/3);
@@ -77,25 +79,31 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
           uint8_t *yp, *up, *vp;
           // get color YUV
           if (x % 2 == 0) {
+
             // Even x
             up = &buffer[y * 2 * img->w + 2 * x];      // U
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
             vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
-            //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+
           } else {
+
             // Uneven x
             up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
-            //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
             vp = &buffer[y * 2 * img->w + 2 * x];      // V
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
           }
+
+
         if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
             (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
+
+          floor_array[y][x] = 1;
           
           if (cod_draw) {
             *yp = 255; // set bright color to test it
           }
+
           switch (i)
           {
           case 0: // add to left
@@ -110,6 +118,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
           default:
             break;
           }
+        } else {
+          floor_array[y][x] = 0;
         }
       }
     }

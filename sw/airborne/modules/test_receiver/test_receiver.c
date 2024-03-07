@@ -151,6 +151,7 @@ extern void test_receiver_periodic(void) {
     default:
       break;
   }
+  return;
 
   //PRINT("[countL:%d, countC:%d, countR:%d]\n", ground_count_left, ground_count_center, ground_count_right);
 }
