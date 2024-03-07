@@ -79,13 +79,15 @@ extern void test_receiver_periodic(void) {
 
   switch (navigation_state) {
     case SAFE:
+      VERBOSE_PRINT("Moving forward.\n");
+
       // Move trajectory waypoint forward
       moveWaypointForward(WP_TRAJECTORY, 1.5f * waypoint_step);
 
       //Check new state
        if (!InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
         navigation_state = OUT_OF_BOUNDS;
-      } else if (ground_count_center >= center_threshold){
+      } else if (ground_count_center <= center_threshold){
         navigation_state = OBSTACLE_FOUND;
       } else {
         // Move Goal waypoint forward
@@ -95,31 +97,62 @@ extern void test_receiver_periodic(void) {
       break;
     
     case OBSTACLE_FOUND:
-      VERBOSE_PRINT("Obstacle encountered");
+      VERBOSE_PRINT("Obstacle encountered\n");
 
+       // stop moving
+      waypoint_move_here_2d(WP_GOAL);
+      waypoint_move_here_2d(WP_TRAJECTORY);
+
+      // Make decision based on number of ground pixels left or right (tie breaker included)
       if (ground_count_left > ground_count_right) {
         navigation_state = TURN_LEFT;
       } else {
         navigation_state = TURN_RIGHT;
       }
 
-
       break;
 
     case TURN_LEFT:
+      VERBOSE_PRINT("Turning left.\n");
+      increase_nav_heading(-heading_increment);
+
+      // Check if it is safe to move
+      if (ground_count_center >= center_threshold){
+        navigation_state = SAFE;
+      }
 
       break;
 
     case TURN_RIGHT:
+      VERBOSE_PRINT("Turning right.\n");
+      increase_nav_heading(heading_increment);
+
+      // Check if it is safe to move
+      if (ground_count_center >= center_threshold){
+        navigation_state = SAFE;
+      }
 
       break;
     
     case OUT_OF_BOUNDS:
+      VERBOSE_PRINT("Out of bounds. \n");
+      increase_nav_heading(heading_increment);
+      moveWaypointForward(WP_TRAJECTORY, 1.5f);
 
+      if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
+        // add offset to head back into arena
+        increase_nav_heading(heading_increment);
+
+        // ensure direction is safe before continuing
+        navigation_state = TURN_RIGHT;
+      }
+      break;
+    
+    default:
       break;
   }
 
-  //PRINT("[countL:%d, countC:%d, countR:%d]", ground_count_left, ground_count_center, ground_count_right);
+  //PRINT("[countL:%d, countC:%d, countR:%d]\n", ground_count_left, ground_count_center, ground_count_right);
 }
 
 
@@ -143,7 +176,7 @@ uint8_t increase_nav_heading(float incrementDegrees)
   // set heading, declared in firmwares/rotorcraft/navigation.h
   nav.heading = new_heading;
 
-  VERBOSE_PRINT("Increasing heading to %f\n", DegOfRad(new_heading));
+  VERBOSE_PRINT("Changed heading to %f\n", DegOfRad(new_heading));
   return false;
 }
 
