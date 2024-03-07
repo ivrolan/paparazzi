@@ -99,7 +99,7 @@
     <!-- <module name="constant_turning"/> -->
 
     <module name="custom_avoider">
-      <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
+      <define name="CUSTOM_GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
     </module>
 
     <module name="video_rtp_stream">
