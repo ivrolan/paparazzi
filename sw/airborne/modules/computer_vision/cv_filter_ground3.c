@@ -70,19 +70,21 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
         //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
           uint8_t *yp, *up, *vp;
           // get color YUV
+          
           if (x % 2 == 0) {
             // Even x
             up = &buffer[y * 2 * img->w + 2 * x];      // U
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
             vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
-            //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+            
           } else {
+
             // Uneven x
             up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
-            //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
             vp = &buffer[y * 2 * img->w + 2 * x];      // V
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
           }
+
         if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
             (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {

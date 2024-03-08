@@ -93,7 +93,7 @@
     <module name="cv_filter_ground3">
       <define name="FILTER_GROUND3_CAM" value="front_camera"/>
       <define name="FILTER_GROUND3_FPS" value="0"/>
-      <define name="FILTER_GROUND3_DRAW" value="1"/>
+      <define name="FILTER_GROUND3_DRAW" value="0"/>
       <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
     </module>
     <!-- <module name="constant_turning"/> -->
