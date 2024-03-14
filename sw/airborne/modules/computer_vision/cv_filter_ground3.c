@@ -64,14 +64,15 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
   int reduced_width = img->w / scale_factor;
   int reduced_height = img->h / scale_factor;
+  PRINT("Before creating the array");
   int reduced_image_array[reduced_height][reduced_width];
-
+  PRINT("After creating the array");
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
   //PRINT("lower_pix = %d, img->h /3: %d", lower_pix, img->h/3);
-  for (uint16_t x = 0; x < lower_pix; x+=4) {
+  for (uint16_t x = 0; x < lower_pix; x+=scale_factor) {
     for (uint8_t i = 0; i < 3; i++){
-      for (uint16_t y = i*(img->h/3); y < (i+1) * (img->h/3); y+=4) {  
+      for (uint16_t y = i*(img->h/3); y < (i+1) * (img->h/3); y+=scale_factor) {  
         
         //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
           uint8_t *yp, *up, *vp;
@@ -96,8 +97,9 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
         if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
             (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
-
-          reduced_image_array[y][x] = 1;
+          
+          PRINT("Setting value to 1");
+          reduced_image_array[y/scale_factor][x/scale_factor] = 1;
           
           if (cod_draw) {
             *yp = 255; // set bright color to test it
@@ -118,7 +120,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
           }
 
         } else {
-          reduced_image_array[y][x] = 0;
+          reduced_image_array[y/scale_factor][x/scale_factor] = 0;
         }
       }
     }
