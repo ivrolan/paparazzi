@@ -28,7 +28,7 @@ uint8_t cod_cr_min = 0;
 uint8_t cod_cr_max = 0;
 
 
-uint8_t lower_pix = 50;
+uint8_t lower_pix;
 
 bool cod_draw = false;
 
@@ -59,7 +59,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t cnt_left = 0;
   uint16_t cnt_right = 0;
   uint8_t *buffer = img->buf;
-  int risk_array[173] = {80};  //should be lower_pix (50) but for some reason in reality it's 80
+  int risk_array[173] = {lower_pix};
 
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
