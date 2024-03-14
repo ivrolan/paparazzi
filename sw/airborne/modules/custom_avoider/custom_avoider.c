@@ -118,7 +118,7 @@ void custom_avoider_periodic(void)
 
   PRINT("left count: %d  risk: %d right count: %d \n", rec_ground_filter_msg.count_left, rec_ground_filter_msg.count_center, rec_ground_filter_msg.count_right);
 
-  int32_t max_risk = 40;
+  int32_t max_risk = 36;  // 0.45 * 80, 0.45 was chosen based on ROC curve from Python script
   int32_t occ_pix_max = 7000;
 
   // update our safe confidence using color threshold
