@@ -120,7 +120,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
     }
   }
 
-  PRINT("Risk: %d\n", risk);
+  //PRINT("Risk: %d\n", risk);
 
   //PRINT("%d %d %d %d %d %d %d\n", risk_array[2], risk_array[3], risk_array[4], risk_array[20], risk_array[28], risk_array[60], risk_array[70]);
 
@@ -167,7 +167,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
   pthread_mutex_lock(&mutex);
   ground_filter_msg.count_left = cnt_left;
-  ground_filter_msg.count_center = cnt_center;
+  ground_filter_msg.count_center = risk;
   ground_filter_msg.count_right = cnt_right;
   ground_filter_msg.updated = true;
   pthread_mutex_unlock(&mutex);

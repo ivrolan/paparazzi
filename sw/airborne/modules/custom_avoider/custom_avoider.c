@@ -116,13 +116,13 @@ void custom_avoider_periodic(void)
   // compute current color thresholds
   int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
-  PRINT("left count: %d  center count: %d right count: %d \n", rec_ground_filter_msg.count_left, rec_ground_filter_msg.count_center, rec_ground_filter_msg.count_right);
-  int32_t free_pix_max = 13813;
-    int32_t occ_pix_max = 7000;
-  int32_t center_threshold = occ_pix_max/free_pix_max;
+  PRINT("left count: %d  risk: %d right count: %d \n", rec_ground_filter_msg.count_left, rec_ground_filter_msg.count_center, rec_ground_filter_msg.count_right);
+
+  int32_t max_risk = 40;
+  int32_t occ_pix_max = 7000;
 
   // update our safe confidence using color threshold
-  if(rec_ground_filter_msg.count_center < occ_pix_max){ // we're gonna hit
+  if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
     // navigation_state = OBSTACLE_FOUND;
     obstacle_free_confidence-= 2;
   } else {
