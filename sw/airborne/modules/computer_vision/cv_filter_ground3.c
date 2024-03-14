@@ -59,6 +59,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t cnt_left = 0;
   uint16_t cnt_right = 0;
   uint8_t *buffer = img->buf;
+  int risk_array[173] = {80};  //should be lower_pix (50) but for some reason in reality it's 80
 
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
@@ -87,10 +88,6 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
 
-
-
-
-              
           
           if (cod_draw) {
             *yp = 255; // set bright color to test it
@@ -102,6 +99,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             break;
           case 1: // add to center
             cnt_center++;
+            risk_array[y - img->h/3]--;
             break;
           case 2: // add to right
             cnt_right++;
@@ -113,6 +111,18 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
       }
     }
   }
+
+  // Find maximum
+  int risk = 0;
+  for (int i=0; i<173; i++) {
+    if (risk_array[i] > risk) {
+      risk = risk_array[i];
+    }
+  }
+
+  PRINT("Risk: %d\n", risk);
+
+  //PRINT("%d %d %d %d %d %d %d\n", risk_array[2], risk_array[3], risk_array[4], risk_array[20], risk_array[28], risk_array[60], risk_array[70]);
 
   if (cod_draw) {
     //PRINT("drawing black");
