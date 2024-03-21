@@ -27,18 +27,23 @@ enum navigation_state_t {
   OBSTACLE_FOUND,
   SEARCH_FOR_SAFE_HEADING,
   OUT_OF_BOUNDS,
-  IDLE
+  IDLE,
+  STOPPING_TO_OBS,
+  STOPPING_TO_SAFE
 };
 
 // define settings
 float oa_color_count_frac = 0.18f;
 
 // define and initialise global variables
-enum navigation_state_t navigation_state = SEARCH_FOR_SAFE_HEADING;
+enum navigation_state_t navigation_state = OBSTACLE_FOUND; //SEARCH_FOR_SAFE_HEADING;
 int32_t color_count = 0;                // orange color count from color filter for obstacle detection
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead is safe.
 float heading_increment = 5.f;          // heading angle increment [deg]
 float maxDistance = 2.25;               // max waypoint displacement [m]
+
+float compensate_fwd = -0.4f;
+float compensate_ang = -0.3f;
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
 
@@ -101,14 +106,14 @@ void ground_follower_periodic(void)
   float speed_sp = 0.5f;  
 
   // update our safe confidence using color threshold
-  if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
-    navigation_state = OBSTACLE_FOUND;
-    // obstacle_free_confidence-= 2;
-  } else {
-    // obstacle_free_confidence++;
-    // let's ignore the confidence for now
-    navigation_state = SAFE;  // be more cautious with positive obstacle detections
-  }
+  // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
+  //   navigation_state = OBSTACLE_FOUND;
+  //   // obstacle_free_confidence-= 2;
+  // } else {
+  //   // obstacle_free_confidence++;
+  //   // let's ignore the confidence for now
+  //   navigation_state = SAFE;  // be more cautious with positive obstacle detections
+  // }
 
 //   bound obstacle_free_confidence
   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
@@ -121,6 +126,16 @@ void ground_follower_periodic(void)
       // Move forward
       guidance_h_set_body_vel(speed_sp, 0);
 
+      if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
+        guidance_h_set_body_vel(0, 0);
+
+        navigation_state = STOPPING_TO_OBS;
+      }
+      break;
+    case STOPPING_TO_OBS:
+      // apply a little of backward velocity to compensate for the forward velocity
+      guidance_h_set_body_vel(compensate_fwd * speed_sp, 0);
+      navigation_state = OBSTACLE_FOUND;
       break;
     case OBSTACLE_FOUND:
       // stop
@@ -131,12 +146,20 @@ void ground_follower_periodic(void)
       //chooseMaxFreeIncrementAvoidance();
       
       // start turn
-      guidance_h_set_heading_rate(RadOfDeg(20));
+      guidance_h_set_heading_rate(RadOfDeg(15));
 
       //navigation_state = SEARCH_FOR_SAFE_HEADING;
-  
-      break;
+      if(rec_ground_filter_msg.count_center < max_risk){ // We're safe
+        guidance_h_set_body_vel(0, 0);
 
+        navigation_state = STOPPING_TO_SAFE;
+      }
+      break;
+    case STOPPING_TO_SAFE:
+      // compensate for the turning velocity
+      guidance_h_set_heading_rate(compensate_ang * RadOfDeg(15));
+      navigation_state = SAFE;
+      break;
     // ---- for now only make use of the SAFE and OBSTACLE_FOUND
     case SEARCH_FOR_SAFE_HEADING:
     //   increase_nav_heading(heading_increment);
