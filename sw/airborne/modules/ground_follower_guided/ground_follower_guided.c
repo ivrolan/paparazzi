@@ -21,6 +21,7 @@
 #define VERBOSE_PRINT(...)
 #endif
 
+uint8_t chooseRandomIncrementAvoidance(void);
 
 enum navigation_state_t {
   SAFE,
@@ -41,6 +42,8 @@ int32_t color_count = 0;                // orange color count from color filter 
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead is safe.
 float heading_increment = 5.f;          // heading angle increment [deg]
 float maxDistance = 2.25;               // max waypoint displacement [m]
+
+float avoidance_turning_direction = 0;
 
 float compensate_fwd = -0.4f;
 float compensate_ang = -0.1f;
@@ -79,7 +82,7 @@ void ground_follower_init(void)
 {
   // Initialise random values
   srand(time(NULL));
-//   chooseRandomIncrementAvoidance();
+  chooseRandomIncrementAvoidance();
 
   // bind our colorfilter callbacks to receive the ground filter outputs
   AbiBindMsgGROUND_FILTER_DETECTION(CUSTOM_GROUND_FILTER_DETECTION_ID, &ground_filter_detection_ev, ground_filter_detection_cb);
@@ -104,7 +107,7 @@ void ground_follower_periodic(void)
   int32_t occ_pix_max = 7000;
 
   float speed_sp = 0.5f;  
-
+  int ang_vel = 15;
   // update our safe confidence using color threshold
   // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
   //   navigation_state = OBSTACLE_FOUND;
@@ -115,12 +118,14 @@ void ground_follower_periodic(void)
   //   navigation_state = SAFE;  // be more cautious with positive obstacle detections
   // }
 
-//   bound obstacle_free_confidence
-  Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
+  // //   bound obstacle_free_confidence
+  // Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
-  float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
+  // float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
     // navigation_state = IDLE;
-    PRINT("state %d ", navigation_state);
+  
+  PRINT("state %d ", navigation_state);
+  
   switch (navigation_state){
     case SAFE:
       // Move forward
@@ -136,6 +141,7 @@ void ground_follower_periodic(void)
       // apply a little of backward velocity to compensate for the forward velocity
       guidance_h_set_body_vel(compensate_fwd * speed_sp, 0);
       navigation_state = OBSTACLE_FOUND;
+      chooseRandomIncrementAvoidance();
       break;
     case OBSTACLE_FOUND:
       // stop
@@ -146,7 +152,7 @@ void ground_follower_periodic(void)
       //chooseMaxFreeIncrementAvoidance();
       
       // start turn
-      guidance_h_set_heading_rate(RadOfDeg(15));
+      guidance_h_set_heading_rate(avoidance_turning_direction *  RadOfDeg(ang_vel));
 
       //navigation_state = SEARCH_FOR_SAFE_HEADING;
       if(rec_ground_filter_msg.count_center < max_risk){ // We're safe
@@ -157,37 +163,31 @@ void ground_follower_periodic(void)
       break;
     case STOPPING_TO_SAFE:
       // compensate for the turning velocity
-      guidance_h_set_heading_rate(compensate_ang * RadOfDeg(15));
+      guidance_h_set_heading_rate(compensate_ang * avoidance_turning_direction * RadOfDeg(ang_vel));
       navigation_state = SAFE;
       break;
     // ---- for now only make use of the SAFE and OBSTACLE_FOUND
-    case SEARCH_FOR_SAFE_HEADING:
-    //   increase_nav_heading(heading_increment);
-
-    //   // make sure we have a couple of good readings before declaring the way safe
-    //   if (obstacle_free_confidence >= 2){
-    //     navigation_state = SAFE;
-    //   }
-    //   break;
-    // case OUT_OF_BOUNDS:
-    //   increase_nav_heading(heading_increment);
-    //   moveWaypointForward(WP_TRAJECTORY, 1.5f);
-
-    //   if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
-    //     // add offset to head back into arena
-    //     increase_nav_heading(heading_increment);
-
-    //     // reset safe counter
-    //     obstacle_free_confidence = 0;
-
-    //     // ensure direction is safe before continuing
-    //     navigation_state = SEARCH_FOR_SAFE_HEADING;
-    //   }
-    //   break;
+   
     case IDLE:
         break;
     default:
       break;
   }
   return;
+}
+
+/*
+ * Sets the variable 'incrementForAvoidance' randomly positive/negative
+ */
+uint8_t chooseRandomIncrementAvoidance(void)
+{
+  // Randomly choose CW or CCW avoiding direction
+  if (rand() % 2 == 0) {
+    avoidance_turning_direction = 1.f;
+    // VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
+  } else {
+    avoidance_turning_direction = -1.f;
+    // VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
+  }
+  return false;
 }
