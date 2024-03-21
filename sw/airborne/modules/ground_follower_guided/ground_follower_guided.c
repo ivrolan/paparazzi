@@ -43,7 +43,7 @@ float heading_increment = 5.f;          // heading angle increment [deg]
 float maxDistance = 2.25;               // max waypoint displacement [m]
 
 float compensate_fwd = -0.4f;
-float compensate_ang = -0.3f;
+float compensate_ang = -0.1f;
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
 
