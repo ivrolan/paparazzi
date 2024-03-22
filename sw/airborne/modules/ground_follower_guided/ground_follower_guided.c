@@ -45,7 +45,7 @@ float maxDistance = 2.25;               // max waypoint displacement [m]
 
 float avoidance_turning_direction = 0;
 
-float compensate_fwd = -0.4f;
+float compensate_fwd = -0.5f;
 float compensate_ang = -0.1f;
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
@@ -141,7 +141,26 @@ void ground_follower_periodic(void)
       // apply a little of backward velocity to compensate for the forward velocity
       guidance_h_set_body_vel(compensate_fwd * speed_sp, 0);
       navigation_state = OBSTACLE_FOUND;
-      chooseRandomIncrementAvoidance();
+
+      // chooose avoidance_turning_direction
+      // positive angle means turning right
+
+      if (rec_ground_filter_msg.count_right > rec_ground_filter_msg.count_left) {
+        avoidance_turning_direction = 1.0f;
+        VERBOSE_PRINT("Turn right\n");
+      } else{
+        avoidance_turning_direction = -1.0f;
+        VERBOSE_PRINT("Turn left\n");
+      }
+
+      // with a small chance (10%), override this for a random value
+      int chance = rand() % 10;
+      
+      if (chance < 1) {
+        chooseRandomIncrementAvoidance();
+        VERBOSE_PRINT("Random direction chosen");
+      }
+
       break;
     case OBSTACLE_FOUND:
       // stop
