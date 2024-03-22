@@ -37,7 +37,7 @@ enum navigation_state_t {
 float oa_color_count_frac = 0.18f;
 
 // define and initialise global variables
-enum navigation_state_t navigation_state = OBSTACLE_FOUND; //SEARCH_FOR_SAFE_HEADING;
+enum navigation_state_t navigation_state = IDLE;
 int32_t color_count = 0;                // orange color count from color filter for obstacle detection
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead is safe.
 float heading_increment = 5.f;          // heading angle increment [deg]
@@ -45,7 +45,7 @@ float maxDistance = 2.25;               // max waypoint displacement [m]
 
 float avoidance_turning_direction = 0;
 
-float compensate_fwd = -0.5f;
+float compensate_fwd = -0.5f; //-0.2f;
 float compensate_ang = -0.1f;
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
@@ -108,21 +108,6 @@ void ground_follower_periodic(void)
 
   float speed_sp = 0.5f;  
   int ang_vel = 15;
-  // update our safe confidence using color threshold
-  // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
-  //   navigation_state = OBSTACLE_FOUND;
-  //   // obstacle_free_confidence-= 2;
-  // } else {
-  //   // obstacle_free_confidence++;
-  //   // let's ignore the confidence for now
-  //   navigation_state = SAFE;  // be more cautious with positive obstacle detections
-  // }
-
-  // //   bound obstacle_free_confidence
-  // Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
-
-  // float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
-    // navigation_state = IDLE;
   
   PRINT("state %d ", navigation_state);
   
@@ -188,7 +173,14 @@ void ground_follower_periodic(void)
     // ---- for now only make use of the SAFE and OBSTACLE_FOUND
    
     case IDLE:
-        break;
+      guidance_h_set_body_vel(0, 0);
+      if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
+        navigation_state = OBSTACLE_FOUND;
+      } else {
+        // let's ignore the confidence for now
+        navigation_state = SAFE;  // be more cautious with positive obstacle detections
+      }
+      break;
     default:
       break;
   }
