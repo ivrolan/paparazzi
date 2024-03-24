@@ -65,7 +65,7 @@ const float intercept = -7.278287104923872;
 static struct image_t *cam_callback(struct image_t *img);
 static struct image_t *cam_callback(struct image_t *img __attribute__((unused))) {
 
-  PRINT("img callback\n");
+  // PRINT("img callback\n");
 
   // get image
   uint8_t *buffer = img->buf;
@@ -79,18 +79,18 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t y_height = img->h / downsample_factor;
 
   // check that the downsampled image has area equal to the feat vector
-  PRINT("Downsampled width from %d to %d pix\n",img->w, x_width);
-  PRINT("Downsampled height from %d to %d pix\n",img->h, y_height);
-  PRINT("Downsampled area from %d to %d | N_features: %d\n", img->w*img->h, x_width * y_height, N_FEATURES);
+  // PRINT("Downsampled width from %d to %d pix\n",img->w, x_width);
+  // PRINT("Downsampled height from %d to %d pix\n",img->h, y_height);
+  // PRINT("Downsampled area from %d to %d | N_features: %d\n", img->w*img->h, x_width * y_height, N_FEATURES);
 
   uint16_t x_index = 0, y_index= 0;
   uint16_t feat_counter = 0;
   for (int16_t x = img->w; x >= downsample_factor; x-=downsample_factor) {
     x_index = (img->w - (uint16_t) x) / downsample_factor;
-    PRINT("x_index is %d\n", x_index);
+    // PRINT("x_index is %d\n", x_index);
     for (uint16_t y = 0; y < img->h - downsample_factor; y+=downsample_factor) {  
       y_index = y / downsample_factor;
-      PRINT("y_index is %d\n", y_index);
+      // PRINT("y_index is %d\n", y_index);
       //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
         uint8_t *yp, *up, *vp;
         // get color YUV
@@ -109,7 +109,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
         }
 
       // -- filter --
-      PRINT("Access index to feat_vec is %d\n", y_index + x_index*y_height);
+      // PRINT("Access index to feat_vec is %d\n", y_index + x_index*y_height);
       if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
           (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
           (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
@@ -123,7 +123,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
     }
   }
   
-  PRINT("Feature vector got %d values", feat_counter);
+  // PRINT("Feature vector got %d values", feat_counter);
   
   // multiply values by coefficients
   // as feature vector values are 1 or 0 maybe there is another way to make it more efficient

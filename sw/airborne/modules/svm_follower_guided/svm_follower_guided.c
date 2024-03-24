@@ -71,6 +71,7 @@ static void svm_decision_msg_cb(uint8_t __attribute__((unused)) sender_id,
 {
     rec_svm_decision_msg.value = value; 
     rec_svm_decision_msg.decision = decision;
+    rec_svm_decision_msg.updated = true;
 }
 
 /*
@@ -81,6 +82,8 @@ void svm_follower_init(void)
   // Initialise random values
   srand(time(NULL));
   chooseRandomIncrementAvoidance();
+  rec_svm_decision_msg.updated = false;
+
 
   // bind our colorfilter callbacks to receive the ground filter outputs
   AbiBindMsgSVM_DECISION_MSG(CUSTOM_SVM_DECISION_MSG_ID, &svm_decision_msg_ev, svm_decision_msg_cb);
@@ -164,11 +167,12 @@ void svm_follower_periodic(void)
       //   // let's ignore the confidence for now
       //   navigation_state = SAFE;  // be more cautious with positive obstacle detections
       // }
-
-      if (rec_svm_decision_msg.decision) {
-        navigation_state = OBSTACLE_FOUND;
-      } else {
-        navigation_state = SAFE;
+      if (rec_svm_decision_msg.updated) {
+        if (rec_svm_decision_msg.decision) {
+          navigation_state = OBSTACLE_FOUND;
+        } else {
+          navigation_state = SAFE;
+        }
       }
       break;
     default:
