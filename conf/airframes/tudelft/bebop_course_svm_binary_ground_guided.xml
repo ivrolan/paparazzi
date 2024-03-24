@@ -73,14 +73,14 @@
       <define name="SVM_DECISION_CAM" value="front_camera"/>
       <define name="SVM_DECISION_FPS" value="0"/>
       <define name="SVM_DECISION_DRAW" value="0"/>
-      <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
+      <define name="SVM_DECISION_MSG_ID" value="ABI_BROADCAST"/>
     </module>
 
-    <module name="constant_turning"/>
+    <!-- <module name="constant_turning"/> -->
 
-    <!-- <module name="ground_follower_guided">
-      <define name="CUSTOM_GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
-    </module> -->
+    <module name="svm_follower_guided">
+      <define name="CUSTOM_SVM_DECISION_MSG_ID" value="ABI_BROADCAST"/>
+    </module>
 
     <module name="video_rtp_stream">
       <define name="VIEWVIDEO_CAMERA" value="front_camera"/>

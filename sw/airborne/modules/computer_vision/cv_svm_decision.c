@@ -185,10 +185,9 @@ void svm_decision_periodic(void)
     // we shouldn't use updated here, but let's leave like that to test compiling issues
     PRINT("Value is %.2f | Decision is %d\n", svm_decision_msg.value, svm_decision_msg.decision);
 
-    // AbiSendMsgGROUND_FILTER_DETECTION(GROUND_FILTER_DETECTION_ID,
-    //                             local_msg.value,
-    //                             local_msg.decision,
-    //                             local_msg.updated, 0);
+    AbiSendMsgSVM_DECISION_MSG(SVM_DECISION_MSG_ID,
+                                local_msg.value,
+                                local_msg.decision, 0);
 
     // PRINT("sending msg %d|%d|%d", local_msg.count_left,
     //                             local_msg.count_center,
