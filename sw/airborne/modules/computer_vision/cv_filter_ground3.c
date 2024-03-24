@@ -70,7 +70,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
 
       // Left sector
-      if (i == 1){
+      if (i == 0){
         for (uint16_t y = i*(img->h/3); y < (i+1) * (img->h/3); y++) {  
         
         //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
@@ -118,7 +118,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
 
       // Central sector
-      } else if (i == 2) { 
+      } else if (i == 1) { 
         for (uint16_t y = i*(img->h/3); y < (i+1) * (img->h/3); y++) {  
         
         //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
