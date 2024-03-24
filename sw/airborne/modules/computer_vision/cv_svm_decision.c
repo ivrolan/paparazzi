@@ -85,10 +85,10 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
   uint16_t x_index = 0, y_index= 0;
   uint16_t feat_counter = 0;
-  for (int32_t x = img->w; x >= 0; x-=downsample_factor) {
-    x_index = (img->w - x) / downsample_factor;
+  for (int16_t x = img->w; x >= downsample_factor; x-=downsample_factor) {
+    x_index = (img->w - (uint16_t) x) / downsample_factor;
     PRINT("x_index is %d\n", x_index);
-    for (uint16_t y = 0; y < img->h; y+=downsample_factor) {  
+    for (uint16_t y = 0; y < img->h - downsample_factor; y+=downsample_factor) {  
       y_index = y / downsample_factor;
       PRINT("y_index is %d\n", y_index);
       //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
@@ -109,14 +109,14 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
         }
 
       // -- filter --
-      PRINT("Access index to feat_vec is %d", y_index + x_index*x_width);
+      PRINT("Access index to feat_vec is %d\n", y_index + x_index*y_height);
       if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
           (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
           (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
         
-        feature_vector[y_index + x_index*x_width] = 1;
+        feature_vector[y_index + x_index*y_height] = 1;
       } else {
-        feature_vector[y_index + x_index*x_width] = 0;
+        feature_vector[y_index + x_index*y_height] = 0;
       }
 
       feat_counter++;
