@@ -34,7 +34,7 @@ extern bool cod_draw;
 
 
 // Module functions
-extern void filter_ground_init(void);
-extern void filter_ground_periodic(void);
+extern void svm_decision_init(void);
+extern void svm_decision_periodic(void);
 
 #endif /* SVM_CV_H */
