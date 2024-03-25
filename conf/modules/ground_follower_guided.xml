@@ -1,9 +1,9 @@
 <!DOCTYPE module SYSTEM "module.dtd">
 
-<module name="custom_avoider">
+<module name="ground_follower_guided">
   <doc>
     <description>
-    Custom avoidance module
+    Ground Follower Guided
     </description>
     <define name="CUSTOM_GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST" description="which GROUND_DETECTION message to recieve to detect the ground."/>
   </doc>
@@ -19,11 +19,11 @@
     <depends>cv_filter_ground3</depends>
   </dep>
   <header>
-    <file name="custom_avoider.h"/>
+    <file name="ground_follower_guided.h"/>
   </header>
-  <init fun="custom_avoider_init()"/>
-  <periodic fun="custom_avoider_periodic()" freq="1"/>
+  <init fun="ground_follower_init()"/>
+  <periodic fun="ground_follower_periodic()" freq="5"/>
   <makefile target="ap|nps">
-    <file name="custom_avoider.c"/>
+    <file name="ground_follower_guided.c"/>
   </makefile>
 </module>

@@ -28,7 +28,7 @@ uint8_t cod_cr_min = 0;
 uint8_t cod_cr_max = 0;
 
 
-uint8_t lower_pix = 50;
+uint8_t lower_pix;
 
 bool cod_draw = false;
 
@@ -60,12 +60,22 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t cnt_right = 0;
   uint8_t *buffer = img->buf;
 
+  // Initialise array with maximum risk (#of lower px) and then subtract in the loop
+  int risk_array[208] = {lower_pix};
+
+  int b1 = (int) 0.3f * img->w;
+  int b2 = (int) 0.7f * img->w;
+
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
   //PRINT("lower_pix = %d, img->h /3: %d", lower_pix, img->h/3);
   for (uint16_t x = 0; x < lower_pix; x++) {
     for (uint8_t i = 0; i < 3; i++){
-      for (uint16_t y = i*(img->h/3); y < (i+1) * (img->h/3); y++) {  
+
+
+      // Left sector
+      if (i == 0){
+        for (int y = 0; y < b1; y++) {  
         
         //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
           uint8_t *yp, *up, *vp;
@@ -75,11 +85,11 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             up = &buffer[y * 2 * img->w + 2 * x];      // U
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
             vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
-            //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+
           } else {
+
             // Uneven x
             up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
-            //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
             vp = &buffer[y * 2 * img->w + 2 * x];      // V
             yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
           }
@@ -87,27 +97,106 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
           
+          cnt_left++;
+          PRINT("L");
+          return;
+          
           if (cod_draw) {
             *yp = 255; // set bright color to test it
           }
-          switch (i)
-          {
-          case 0: // add to left
-            cnt_left++;
-            break;
-          case 1: // add to center
+        }
+      }
+
+
+
+      // Central sector
+      } else if (i == 1) { 
+        for (int y = b1; y < b2; y++) {  
+        
+        //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
+          uint8_t *yp, *up, *vp;
+          // get color YUV
+          if (x % 2 == 0) {
+            // Even x
+            up = &buffer[y * 2 * img->w + 2 * x];      // U
+            yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
+            vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
+
+          } else {
+
+            // Uneven x
+            up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
+            vp = &buffer[y * 2 * img->w + 2 * x];      // V
+            yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
+          }
+        if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
+            (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
+            (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
+              
             cnt_center++;
-            break;
-          case 2: // add to right
-            cnt_right++;
-            break;
-          default:
-            break;
+            risk_array[y - b1]--;
+            PRINT("C");
+            return;
+          
+          if (cod_draw) {
+            *yp = 255; // set bright color to test it
           }
         }
       }
+
+
+
+      // Right sector
+      } else {
+        for (int y = b2; y < img->h; y++) {  
+        
+        //get_pix(&buffer, x, y,img->w, img->h, &yp, &up, &vp);
+          uint8_t *yp, *up, *vp;
+          // get color YUV
+          if (x % 2 == 0) {
+            // Even x
+            up = &buffer[y * 2 * img->w + 2 * x];      // U
+            yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
+            vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
+
+          } else {
+
+            // Uneven x
+            up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
+            vp = &buffer[y * 2 * img->w + 2 * x];      // V
+            yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
+          }
+        if ( (*yp >= cod_lum_min) && (*yp <= cod_lum_max) &&
+            (*up >= cod_cb_min ) && (*up <= cod_cb_max ) &&
+            (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
+
+            cnt_right++;
+            PRINT("R");
+            return;
+
+          if (cod_draw) {
+            *yp = 255; // set bright color to test it
+          }
+
+        }
+       }
+      }
     }
   }
+
+
+
+  // Find maximum
+  int risk = 0;
+  for (int i=0; i<208; i++) {
+    if (risk_array[i] > risk) {
+      risk = risk_array[i];
+    }
+  }
+
+  PRINT("Risk: %d\n", risk);
+
+  //PRINT("%d %d %d %d %d %d %d\n", risk_array[2], risk_array[3], risk_array[4], risk_array[20], risk_array[28], risk_array[60], risk_array[70]);
 
   if (cod_draw) {
     //PRINT("drawing black");
@@ -133,11 +222,11 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
           up = &buffer[y * 2 * img->w + 2 * x];      // U
           yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
           vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
-          //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+
         } else {
+
           // Uneven x
           up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
-          //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
           vp = &buffer[y * 2 * img->w + 2 * x];      // V
           yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
         }
@@ -152,7 +241,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
 
   pthread_mutex_lock(&mutex);
   ground_filter_msg.count_left = cnt_left;
-  ground_filter_msg.count_center = cnt_center;
+  ground_filter_msg.count_center = risk;
   ground_filter_msg.count_right = cnt_right;
   ground_filter_msg.updated = true;
   pthread_mutex_unlock(&mutex);

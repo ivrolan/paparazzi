@@ -18,7 +18,7 @@
  */
 
 #include "modules/custom_avoider/custom_avoider.h"
-#include "modules/computer_vision/cv_filter_ground3.h" // for the ground filter message
+//#include "modules/computer_vision/cv_filter_ground3.h" // for the ground filter message
 #include "firmwares/rotorcraft/navigation.h"
 #include "generated/airframe.h"
 #include "state.h"
@@ -65,7 +65,7 @@ float maxDistance = 2.25;               // max waypoint displacement [m]
 
 const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
 
-struct ground_filter_msg_t ground_filter_msg;
+struct ground_filter_msg_t rec_ground_filter_msg;
 
 
 /*
@@ -85,9 +85,9 @@ static void ground_filter_detection_cb(uint8_t __attribute__((unused)) sender_id
                                     int16_t count_right,
                                     int16_t __attribute__((unused)) extra)
 {
-    ground_filter_msg.count_left = count_left; 
-    ground_filter_msg.count_center = count_center; 
-    ground_filter_msg.count_right = count_right; 
+    rec_ground_filter_msg.count_left = count_left; 
+    rec_ground_filter_msg.count_center = count_center; 
+    rec_ground_filter_msg.count_right = count_right; 
 }
 
 /*
@@ -100,7 +100,7 @@ void custom_avoider_init(void)
 //   chooseRandomIncrementAvoidance();
 
   // bind our colorfilter callbacks to receive the ground filter outputs
-  AbiBindMsgGROUND_FILTER_DETECTION(GROUND_FILTER_DETECTION_ID, &ground_filter_detection_ev, ground_filter_detection_cb);
+  AbiBindMsgGROUND_FILTER_DETECTION(CUSTOM_GROUND_FILTER_DETECTION_ID, &ground_filter_detection_ev, ground_filter_detection_cb);
 }
 
 /*
@@ -116,13 +116,13 @@ void custom_avoider_periodic(void)
   // compute current color thresholds
   int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
-  PRINT("left count: %d  center count: %d right count: %d \n", ground_filter_msg.count_left, ground_filter_msg.count_center, ground_filter_msg.count_right);
-  int32_t free_pix_max = 13813;
-    int32_t occ_pix_max = 7000;
-  int32_t center_threshold = occ_pix_max/free_pix_max;
+  PRINT("left count: %d  risk: %d right count: %d \n", rec_ground_filter_msg.count_left, rec_ground_filter_msg.count_center, rec_ground_filter_msg.count_right);
+
+  int32_t max_risk = 36;  // 0.45 * 80, 0.45 was chosen based on ROC curve from Python script
+  int32_t occ_pix_max = 7000;
 
   // update our safe confidence using color threshold
-  if(ground_filter_msg.count_center < occ_pix_max){ // we're gonna hit
+  if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
     // navigation_state = OBSTACLE_FOUND;
     obstacle_free_confidence-= 2;
   } else {
@@ -265,7 +265,7 @@ uint8_t chooseRandomIncrementAvoidance(void)
 uint8_t chooseMaxFreeIncrementAvoidance(void)
 {
   // Randomly choose CW or CCW avoiding direction
-  if (ground_filter_msg.count_left < ground_filter_msg.count_right) {
+  if (rec_ground_filter_msg.count_left < rec_ground_filter_msg.count_right) {
     heading_increment = 15.f;
     VERBOSE_PRINT("Set avoidance increment to: %f\n", heading_increment);
   } else {
