@@ -117,7 +117,7 @@ void svm_follower_periodic(void)
       // Move forward
       guidance_h_set_body_vel(speed_sp, 0);
 
-      if(rec_svm_decision_msg.decision){ // we're gonna hit
+      if(!rec_svm_decision_msg.decision){ // we're gonna hit
         guidance_h_set_body_vel(0, 0);
 
         navigation_state = STOPPING_TO_OBS;
@@ -146,7 +146,7 @@ void svm_follower_periodic(void)
       guidance_h_set_heading_rate(avoidance_turning_direction *  RadOfDeg(ang_vel));
 
       //navigation_state = SEARCH_FOR_SAFE_HEADING;
-      if(!rec_svm_decision_msg.decision){ // We're safe
+      if(rec_svm_decision_msg.decision){ // We're safe
         guidance_h_set_body_vel(0, 0);
 
         navigation_state = STOPPING_TO_SAFE;
@@ -168,7 +168,7 @@ void svm_follower_periodic(void)
       //   navigation_state = SAFE;  // be more cautious with positive obstacle detections
       // }
       if (rec_svm_decision_msg.updated) {
-        if (rec_svm_decision_msg.decision) {
+        if (!rec_svm_decision_msg.decision) {
           navigation_state = OBSTACLE_FOUND;
         } else {
           navigation_state = SAFE;
