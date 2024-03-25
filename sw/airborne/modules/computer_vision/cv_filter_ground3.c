@@ -63,8 +63,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   // Initialise array with maximum risk (#of lower px) and then subtract in the loop
   int risk_array[208] = {lower_pix};
 
-  int b1 = (int) 0.3f * img->w;
-  int b2 = (int) 0.7f * img->w;
+  int b1 = (int) (0.3f * img->h);
+  int b2 = (int) (0.7f * img->h);
 
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
@@ -98,8 +98,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
           
           cnt_left++;
-          PRINT("L");
-          return;
+          // PRINT("L");
+          // return;
           
           if (cod_draw) {
             *yp = 255; // set bright color to test it
@@ -135,8 +135,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
               
             cnt_center++;
             risk_array[y - b1]--;
-            PRINT("C");
-            return;
+            // PRINT("C");
+            // return;
           
           if (cod_draw) {
             *yp = 255; // set bright color to test it
@@ -171,8 +171,8 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             (*vp >= cod_cr_min ) && (*vp <= cod_cr_max )) {
 
             cnt_right++;
-            PRINT("R");
-            return;
+            // PRINT("R");
+            // return;
 
           if (cod_draw) {
             *yp = 255; // set bright color to test it
