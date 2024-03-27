@@ -107,7 +107,7 @@ void ground_follower_periodic(void)
   int32_t occ_pix_max = 7000;
 
   float speed_sp = 0.5f;  
-  int ang_vel = 25;
+  int ang_vel = 40;
   // update our safe confidence using color threshold
   // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
   //   navigation_state = OBSTACLE_FOUND;
