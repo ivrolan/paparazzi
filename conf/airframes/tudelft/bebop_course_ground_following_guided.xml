@@ -12,9 +12,9 @@
       
       <!-- This is for both i guess -->
       
-      <!-- Detect ground (old values: [80, 150] [0, 120], [0, 155])-->
+      <!-- The new filter values are Y: [100, 190], U: [0, 120], V: [0, 150]-->
       <define name="FILTER_GROUND3_LUM_MIN" value="100"/>
-      <define name="FILTER_GROUND3_LUM_MAX" value="170"/>
+      <define name="FILTER_GROUND3_LUM_MAX" value="190"/>
       <define name="FILTER_GROUND3_CB_MIN" value="0" />
       <define name="FILTER_GROUND3_CB_MAX" value="120" />
       <define name="FILTER_GROUND3_CR_MIN" value="0" />
@@ -93,7 +93,7 @@
     <module name="cv_filter_ground3">
       <define name="FILTER_GROUND3_CAM" value="front_camera"/>
       <define name="FILTER_GROUND3_FPS" value="0"/>
-      <define name="FILTER_GROUND3_DRAW" value="0"/>
+      <define name="FILTER_GROUND3_DRAW" value="1"/>
       <define name="GROUND_FILTER_DETECTION_ID" value="ABI_BROADCAST"/>
     </module>
 
