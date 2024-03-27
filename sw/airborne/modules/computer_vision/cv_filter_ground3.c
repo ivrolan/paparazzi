@@ -5,6 +5,7 @@
 #include "std.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
 #include "pthread.h"
@@ -69,10 +70,12 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
   uint16_t center_size = b2-b1; //b2-b1
 
   // Initialise array with maximum risk (#of lower px) and then subtract in the loop
-  int risk_array[208] = {lower_pix};
-  // for (int i=0; i<center_size; i++){
-  //   risk_array[i] = lower_pix;
-  // }
+
+  //int risk_array[center_size]; = {lower_pix};
+  uint16_t* risk_array = (uint16_t*) malloc(center_size * sizeof(uint16_t));
+  for (int i=0; i<center_size; i++){
+    risk_array[i] = (uint16_t) lower_pix;
+  }
   
   // Go through all the pixels
   uint8_t *yp, *up, *vp;
@@ -107,11 +110,11 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
             }
 
 
-            if (y>b1){
+            if (y>=b1){
               if (y<b2){
                 // i = 1;
                 cnt_center++;
-                risk_array[y  - img->h/3]--;
+                risk_array[y  - b1]--;
               }
               else{
                 // i = 2;
@@ -152,7 +155,7 @@ static struct image_t *cam_callback(struct image_t *img __attribute__((unused)))
       risk = risk_array[i];
     }
   }
-
+  free(risk_array);
   PRINT("Risk: %d\n", risk);
 
   //PRINT("%d %d %d %d %d %d %d\n", risk_array[2], risk_array[3], risk_array[4], risk_array[20], risk_array[28], risk_array[60], risk_array[70]);
