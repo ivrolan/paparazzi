@@ -106,7 +106,7 @@ void ground_follower_periodic(void)
   int32_t max_risk = 36;  // 0.45 * 80, 0.45 was chosen based on ROC curve from Python script
   int32_t occ_pix_max = 7000;
 
-  float speed_sp = 0.5f;  
+  float speed_sp = 0.6f;  
   int ang_vel = 40;
   // update our safe confidence using color threshold
   // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
@@ -132,7 +132,7 @@ void ground_follower_periodic(void)
       guidance_h_set_body_vel(speed_sp, 0);
 
       if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
-        guidance_h_set_body_vel(0, 0);
+        guidance_h_set_body_vel(0, 0); 
 
         navigation_state = STOPPING_TO_OBS;
       }
