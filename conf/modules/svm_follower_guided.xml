@@ -1,0 +1,29 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="svm_follower_guided">
+  <doc>
+    <description>
+    SVM Follower Guided
+    </description>
+    <define name="CUSTOM_SVM_DECISION_MSG_ID" value="ABI_BROADCAST" description="which SVM_DECISION message to recieve to detect the svm."/>
+  </doc>
+    <!-- <settings>
+    <dl_settings>
+      <dl_settings name="OrangeAvoider">
+         <dl_setting var="oa_color_count_frac" min="0" step="0.01" max="0.5"/>
+      </dl_settings>
+    </dl_settings>
+  </settings> -->
+  
+  <dep>
+    <depends>cv_svm_decision</depends>
+  </dep>
+  <header>
+    <file name="svm_follower_guided.h"/>
+  </header>
+  <init fun="svm_follower_init()"/>
+  <periodic fun="svm_follower_periodic()" freq="5"/>
+  <makefile target="ap|nps">
+    <file name="svm_follower_guided.c"/>
+  </makefile>
+</module>

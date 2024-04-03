@@ -578,6 +578,13 @@
 #define GROUND_FILTER_DETECTION_ID 1
 #endif
 
+/*
+ * SVM_DECISION_MSG communication (message 38)
+*/
+#ifndef SVM_DECISION_MSG_ID
+#define SVM_DECISION_MSG_ID 1
+#endif
+
 
 /*
  * JOYSTICK message (used for payload or control, but not as a RC)

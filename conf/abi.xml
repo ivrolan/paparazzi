@@ -255,6 +255,12 @@
       <field name="extra"        type="int16_t">Extra field for options like detector source etc</field>
     </message>
 
+    <message name="SVM_DECISION_MSG" id="38">
+      <field name="received_value"      type="float">Output of SVM</field>
+      <field name="received_count_center"      type="bool">Decision, 1 if value greater than 0</field>
+      <field name="extra"        type="int16_t">Extra field for options like detector source etc</field>
+    </message>
+
   </msg_class>
 
 </protocol>
