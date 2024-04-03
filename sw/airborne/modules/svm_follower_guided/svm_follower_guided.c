@@ -33,22 +33,14 @@ enum navigation_state_t {
   STOPPING_TO_SAFE
 };
 
-// define settings
-float oa_color_count_frac = 0.18f;
 
 // define and initialise global variables
 enum navigation_state_t navigation_state = IDLE;
-int32_t color_count = 0;                // orange color count from color filter for obstacle detection
-int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead is safe.
-float heading_increment = 5.f;          // heading angle increment [deg]
-float maxDistance = 2.25;               // max waypoint displacement [m]
 
 float avoidance_turning_direction = 0;
 
 float compensate_fwd = -0.5f; //-0.2f;
 float compensate_ang = -0.1f;
-
-const int16_t max_trajectory_confidence = 5; // number of consecutive negative object detections to be sure we are obstacle free
 
 struct svm_decision_msg_t rec_svm_decision_msg;
 
@@ -99,13 +91,9 @@ void svm_follower_periodic(void)
     return;
   }
 
-  // compute current color thresholds
-  int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
-
   //PRINT("left count: %d  risk: %d right count: %d \n", rec_ground_filter_msg.count_left, rec_ground_filter_msg.count_center, rec_ground_filter_msg.count_right);
   PRINT("value: %.2f, decision: %d\n", rec_svm_decision_msg.value, rec_svm_decision_msg.decision);
-  int32_t max_risk = 36;  // 0.45 * 80, 0.45 was chosen based on ROC curve from Python script
-  int32_t occ_pix_max = 7000;
+
 
   float speed_sp = 0.5f;  
   int ang_vel = 15;
@@ -137,10 +125,6 @@ void svm_follower_periodic(void)
     case OBSTACLE_FOUND:
       // stop
       guidance_h_set_body_vel(0, 0);
-
-      // randomly select new search direction
-      
-      //chooseMaxFreeIncrementAvoidance();
       
       // start turn
       guidance_h_set_heading_rate(avoidance_turning_direction *  RadOfDeg(ang_vel));
@@ -160,6 +144,9 @@ void svm_follower_periodic(void)
     // ---- for now only make use of the SAFE and OBSTACLE_FOUND
    
     case IDLE:
+      
+      // init state
+
       guidance_h_set_body_vel(0, 0);
       // if(rec_ground_filter_msg.count_center > max_risk){ // we're gonna hit
       //   navigation_state = OBSTACLE_FOUND;
